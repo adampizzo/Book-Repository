@@ -1,6 +1,4 @@
 # import models
-from ssl import Options
-from sqlalchemy import Integer
 from models import (Base, session,
                     Book, engine)
 import datetime
