@@ -1,10 +1,14 @@
 # import models
+from ssl import Options
 from sqlalchemy import Integer
 from models import (Base, session,
                     Book, engine)
 import datetime
 import csv
 import time
+
+class NotInListError(Exception):
+    pass
 
 class TitleError(Exception):
     pass
@@ -52,6 +56,30 @@ def clean_price(price_str):
         return return_int
 
 
+def clean_id(id_str, id_options):
+    try:
+        book_id = int(id_str)
+        if book_id not in id_options:
+            raise NotInListError
+    except ValueError:
+        input('''
+            \n****** ID ERROR ******
+            \rThe ID should be a number.
+            \rEx: 10
+            \rPress enter to try again.
+            \r*************************''')
+        return
+    except NotInListError:
+        input(f'''
+            \n****** ID ERROR ******
+            \rThe ID should be one that is in the following list.
+            \rOptions: {id_options}
+            \rPress enter to try again.
+            \r*************************''')
+        return
+    else:
+        return book_id
+
 def title_in_db(title):
     try:
         title_check = session.query(Book).filter(Book.title==title).one_or_none()
@@ -74,7 +102,7 @@ def menu():
             \nPROGRAMMING BOOKS
             \r1) Add Book
             \r2) View all books
-            \r3) Search for book
+            \r3) Search for book by ID
             \r4) Book Analysis
             \r5) Exit''')
         choice = input('What would you like to do? ')
@@ -143,7 +171,25 @@ def app():
             
         elif choice == '3':
             # Search for book
-            pass
+            
+            id_options = []
+            
+            for book in session.query(Book):
+                id_options.append(book.id)
+            id_error = True
+            while id_error:
+                id_choice = input(f'''
+                    \nID Options: {id_options}
+                    \rBook id: ''')
+                id_choice = clean_id(id_choice, id_options)
+                if type(id_choice) == int:
+                    id_error = False
+            the_book = session.query(Book).filter(Book.id==id_choice).first()
+            print(f'''
+                \n{the_book.title} by {the_book.author}
+                \rPublished: {the_book.published_date}
+                \rPrice: ${the_book.price/100}''')
+            input('\nPress Enter to return to the main menu...')
         elif choice == '4':
             # Book Analysis
             pass
