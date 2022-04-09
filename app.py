@@ -247,14 +247,31 @@ def app():
                 time.sleep(1.5)
         elif choice == '4':
             # Book Analysis
-            pass
+            # Newest Book in Database
+            oldest_book = session.query(Book).order_by(Book.published_date).first()
+            newest_book = session.query(Book).order_by(Book.published_date.desc()).first()
+            total_books = session.query(Book).count()
+            
+            all_author = session.query(Book).with_entities(Book.author)
+            author_list = []
+            for author in all_author:
+                author_list.append(author.author)
+            most_frequent = max(author_list, key=author_list.count)
+            
+            python_books = session.query(Book).filter(Book.title.like('%Python%')).count()
+            print(f'''\n***** BOOK ANALYSIS *****
+                    \rThe oldest book in the database is: {oldest_book.title}, published on {oldest_book.published_date.strftime("%B %dth, %Y")}.
+                    \rThe newest book in the database is: {newest_book.title}, published on {newest_book.published_date.strftime("%B %dth, %Y")}.
+                    \rThere are {total_books} books in the database.
+                    \rThe author with the most occurences in the database is {most_frequent}.
+                    \rThe number of books in the database relating to Python is {python_books}.''')
+
+            input('\nPress enter to return to the main menu...')
         else:
             print('GOODBYE')
             app_running = False
 
 if __name__ == '__main__':
     Base.metadata.create_all(engine)
-    add_csv()
+    # add_csv()
     app()
-    
-    
